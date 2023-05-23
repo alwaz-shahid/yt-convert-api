@@ -1,17 +1,20 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import ytdl from 'ytdl-core';
-import ffmpeg from 'fluent-ffmpeg';
+//@ts-nocheck
+const express = require('express');
+const cors = require('cors');
+const ytdl = require('ytdl-core');
+const ffmpeg = require('fluent-ffmpeg');
 
 const app = express();
 
-// Enable CORS middleware
 app.use(cors());
 
-// API endpoint for converting YouTube videos to MP3
-app.get('/convert', async (req: Request, res: Response, next: NextFunction) => {
+app.get('/', async (req, res) => {
+  res.send('/convert');
+});
+
+app.get('/convert', async (req, res, next) => {
   try {
-    const url = req.query.url as string;
+    const url = req.query.url;
     if (!url) {
       return res.status(400).json({ message: 'Missing URL query parameter' });
     }
@@ -24,7 +27,7 @@ app.get('/convert', async (req: Request, res: Response, next: NextFunction) => {
       .audioBitrate(128)
       .on('error', (err) => {
         console.error(err);
-        res.sendStatus(500);
+        next(err);
       })
       .on('end', () => {
         console.log('Conversion finished');
@@ -37,13 +40,11 @@ app.get('/convert', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Internal server error' });
 });
 
-// Start the server
-app.listen(3000, () => {
-  console.log('Server started on port 3000');
+app.listen(8000, () => {
+  console.log('Server started on port 8000');
 });
